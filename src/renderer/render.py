@@ -261,6 +261,12 @@ class RenderDual(RendererBase):
         total = len(prog)
         last_per = 0.0
 
+        # Precompute green/red mappings for quick lookup
+        g_vehicle_to_player = {p.ship_id: p for p in self.replay_data.player_info.values()}
+        g_vehicle_to_building = {b.id: b for b in self.replay_data.building_info.values()}
+        r_vehicle_to_player = {p.ship_id: p for p in self.replay_r.player_info.values()}
+        r_vehicle_to_building = {b.id: b for b in self.replay_r.building_info.values()}
+
         for idx, i in enumerate(prog):
             if progress_cb:
                 per = round((idx + 1) / total, 1)
@@ -270,6 +276,65 @@ class RenderDual(RendererBase):
 
             self.conman.update(i)
 
+            # Record frags for both replays (green/red) on the frame they occur
+            for replay, v_to_p, v_to_b, side in (
+                (self.replay_data, g_vehicle_to_player, g_vehicle_to_building, "green"),
+                (self.replay_r, r_vehicle_to_player, r_vehicle_to_building, "red"),
+            ):
+                try:
+                    evt = replay.events[i]
+                except KeyError:
+                    continue
+
+                # Record routes for players in this replay at this frame
+                for vehicle_id, vehicle in evt.evt_vehicle.items():
+                    player = v_to_p.get(vehicle_id)
+                    if not player:
+                        continue
+                    # RenderDual typically doesn't populate self.usernames; use player.name
+                    nick = self.usernames.get(player.id, player.name) if hasattr(self, "usernames") and self.anon and player.id in self.usernames else player.name
+                    ship_name = self.resman.load_json("ships.json").get(player.ship_params_id, {}).get("name", "")
+                    pos_x, pos_y = vehicle.x, vehicle.y
+                    px, py = self.get_scaled((pos_x, pos_y))
+                    rutas = self.output_data.setdefault("rutas", {})
+                    key = nick or str(player.id)
+                    ent = rutas.setdefault(key, {"barco": ship_name, "id": player.id, "path": []})
+                    ent["path"].append({"time": i, "x": pos_x, "y": pos_y, "px": px, "py": py, "side": side})
+
+                for frag in evt.evt_frag:
+                    player = v_to_p.get(frag.killed_id)
+                    if player:
+                        kd_name = self.usernames.get(player.id, player.name) if self.anon and player.id in self.usernames else player.name
+                        entity_id = player.id
+                    else:
+                        building = v_to_b.get(frag.killed_id)
+                        kd_name = building.name if building else ""
+                        entity_id = getattr(building, "id", None)
+
+                    vehicle_evt = evt.evt_vehicle.get(frag.killed_id)
+                    if vehicle_evt:
+                        pos_x, pos_y = vehicle_evt.x, vehicle_evt.y
+                        px, py = self.get_scaled((pos_x, pos_y))
+                    else:
+                        building_evt = evt.evt_building.get(frag.killed_id)
+                        if building_evt:
+                            pos_x, pos_y = building_evt.x, building_evt.y
+                            px, py = self.get_scaled((pos_x, pos_y))
+                        else:
+                            pos_x = pos_y = px = py = None
+
+                    muertes = self.output_data.setdefault("muertes", {})
+                    key = kd_name or str(entity_id)
+                    muertes.setdefault(key, []).append({
+                        "id": entity_id,
+                        "x": pos_x,
+                        "y": pos_y,
+                        "px": px,
+                        "py": py,
+                        "time": i,
+                        "death_type": frag.death_type,
+                        "side": side,
+                    })
             minimap_img = self.minimap_fg.copy()
             minimap_bg = self.minimap_bg.copy()
             draw = ImageDraw.Draw(minimap_img)
@@ -331,6 +396,10 @@ class Renderer(RendererBase):
         self.bg_color: tuple[int, int, int] = (0, 0, 0)
         self.use_tqdm = use_tqdm
         self._builder = ShipBuilder(self.resman)
+        self.output_data = {
+            "muertes": {},  # now a dict keyed by nick -> list of death records
+            "rutas": {} 
+        }
 
         if self.anon:
             for i, (pid, pi) in enumerate(
@@ -398,6 +467,9 @@ class Renderer(RendererBase):
         layer_chat = self._load_layer("LayerChat")(self)
         layer_markers = self._load_layer("LayerMarkers")(self)
 
+        # Load ships metadata once to get ship names for route records
+        ships = self.resman.load_json("ships.json")
+
         video_writer = self.get_writer(path, fps, quality)
         video_writer.send(None)
 
@@ -412,6 +484,10 @@ class Renderer(RendererBase):
         total = len(prog)
         last_per = 0.0
 
+        # Precompute id -> player/building mappings for quick lookup
+        vehicle_id_to_player = {p.ship_id: p for p in self.replay_data.player_info.values()}
+        vehicle_id_to_building = {b.id: b for b in self.replay_data.building_info.values()}
+
         for idx, game_time in enumerate(prog):
             if progress_cb:
                 per = round((idx + 1) / total, 1)
@@ -425,6 +501,63 @@ class Renderer(RendererBase):
             draw = ImageDraw.Draw(minimap_img)
             self.conman.update(game_time)
 
+            # Record frag positions for analysis (only when frags occur this frame)
+            try:
+                evt = self.replay_data.events[game_time]
+            except KeyError:
+                evt = None
+
+            if evt:
+                # Record routes for players present this frame
+                for vehicle_id, vehicle in evt.evt_vehicle.items():
+                    player = vehicle_id_to_player.get(vehicle_id)
+                    if not player:
+                        continue
+                    nick = self.usernames.get(player.id, player.name) if self.anon and player.id in self.usernames else player.name
+                    ship_name = ships.get(player.ship_params_id, {}).get("name", "")
+                    pos_x, pos_y = vehicle.x, vehicle.y
+                    px, py = self.get_scaled((pos_x, pos_y))
+                    rutas = self.output_data.setdefault("rutas", {})
+                    key = nick or str(player.id)
+                    ent = rutas.setdefault(key, {"barco": ship_name, "id": player.id, "path": []})
+                    ent["path"].append({"time": game_time, "x": pos_x, "y": pos_y, "px": px, "py": py})
+
+                for frag in evt.evt_frag:
+                    player = vehicle_id_to_player.get(frag.killed_id)
+                    if player:
+                        kd_name = self.usernames.get(player.id, player.name) if self.anon and player.id in self.usernames else player.name
+                        entity_id = player.id
+                    else:
+                        building = vehicle_id_to_building.get(frag.killed_id)
+                        kd_name = building.name if building else ""
+                        entity_id = getattr(building, "id", None)
+
+                    vehicle_evt = evt.evt_vehicle.get(frag.killed_id)
+                    if vehicle_evt:
+                        pos_x, pos_y = vehicle_evt.x, vehicle_evt.y
+                        px, py = self.get_scaled((pos_x, pos_y))
+                    else:
+                        building_evt = evt.evt_building.get(frag.killed_id)
+                        if building_evt:
+                            pos_x, pos_y = building_evt.x, building_evt.y
+                            px, py = self.get_scaled((pos_x, pos_y))
+                        else:
+                            pos_x = pos_y = px = py = None
+
+                    muertes = self.output_data.setdefault("muertes", {})
+                    key = kd_name or str(entity_id)
+                    muertes.setdefault(key, []).append({
+                        "id": entity_id,
+                        "x": pos_x,
+                        "y": pos_y,
+                        "px": px,
+                        "py": py,
+                        "time": game_time,
+                        "death_type": frag.death_type,
+                        "side": "single",
+                    })
+
+            #si no es un modo de operaciones
             if not self.is_operations:
                 layer_capture.draw(game_time, minimap_img)
                 layer_score.draw(game_time, minimap_bg)
@@ -434,6 +567,7 @@ class Renderer(RendererBase):
             layer_markers.draw(game_time, minimap_img)
             layer_shot.draw(game_time, minimap_img)
             layer_torpedo.draw(game_time, draw)
+            #investigar aqui en el ship, vendra de renderbase
             layer_ship.draw(game_time, minimap_img)
             layer_smoke.draw(game_time, minimap_img)
             layer_plane.draw(game_time, minimap_img)
@@ -442,6 +576,7 @@ class Renderer(RendererBase):
             if self.logs:
                 layer_health.draw(game_time, minimap_bg)
                 layer_counter.draw(game_time, minimap_bg)
+                #investigar aqui en la frag vendra de renderbase
                 layer_frag.draw(game_time, minimap_bg)
 
                 layer_ribbon.draw(game_time, minimap_bg)
@@ -450,6 +585,7 @@ class Renderer(RendererBase):
 
             self.conman.tick()
 
+            #Si es el ultimo frame, añadir texto de victoria/derrota
             if game_time == last_key:
                 img_win = Image.new("RGBA", self.minimap_fg.size)
                 drw_win = ImageDraw.Draw(img_win)
@@ -490,6 +626,9 @@ class Renderer(RendererBase):
             else:
                 minimap_bg.paste(minimap_img, (40, 90))
                 video_writer.send(minimap_bg.tobytes())
+
+            layer_frag._frags
+
         video_writer.close()
 
     def _draw_header(self, image: Image.Image):
@@ -508,3 +647,6 @@ class Renderer(RendererBase):
             "white",
             font_large,
         )
+
+    def get_analysis_data(self):
+        return self.output_data
