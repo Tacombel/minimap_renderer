@@ -26,9 +26,7 @@ class LayerMarkersBase(LayerBase):
             renderer (Renderer): The renderer.
         """
         self._renderer = renderer
-        self._replay_data = (
-            replay_data if replay_data else self._renderer.replay_data
-        )
+        self._replay_data = replay_data if replay_data else self._renderer.replay_data
         self._color = color
         self._abilities = renderer.resman.load_json("abilities.json")
 
@@ -69,15 +67,15 @@ class LayerMarkersBase(LayerBase):
 
                 if self._color:
                     color = (
-                        COLORS_NORMAL[0]
-                        if self._color == "green"
-                        else COLORS_NORMAL[1]
+                        COLORS_NORMAL[0] if self._color == "green" else COLORS_NORMAL[1]
                     )
                 else:
                     color = COLORS_NORMAL[vehicle.relation]
 
                 for aid in {11, 13}.intersection(ac):
                     name = f"{id_to_index[aid]}.{id_to_subtype[aid]}"
+                    if "distShip" not in abilities[name]:
+                        continue
                     dist_ship_bw = abilities[name]["distShip"]
                     r = round(self._renderer.get_scaled_r(dist_ship_bw) / 2)
                     w = h = r * 4

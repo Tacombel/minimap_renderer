@@ -34,13 +34,9 @@ class LayerRibbonBase(LayerBase):
         LayerBase (_type_): _description_
     """
 
-    def __init__(
-        self, renderer: Renderer, replay_data: Optional[ReplayData] = None
-    ):
+    def __init__(self, renderer: Renderer, replay_data: Optional[ReplayData] = None):
         self._renderer = renderer
-        self._replay_data = (
-            replay_data if replay_data else self._renderer.replay_data
-        )
+        self._replay_data = replay_data if replay_data else self._renderer.replay_data
         self._font = self._renderer.resman.load_font(
             filename="warhelios_bold.ttf", size=25
         )
@@ -62,7 +58,12 @@ class LayerRibbonBase(LayerBase):
         last_y_height = 0
         ribbon_count = 0
 
-        if evt_ribbons := evt_ribbons.get(self._replay_data.owner_vehicle_id):
+        # Some versions use avatar_id, others use vehicle_id.
+        # Check both.
+        if not (ribbons := evt_ribbons.get(self._replay_data.owner_vehicle_id)):
+            ribbons = evt_ribbons.get(self._replay_data.owner_avatar_id)
+
+        if evt_ribbons := ribbons:
             totals = {}
 
             for r_id, count in evt_ribbons.items():
@@ -135,9 +136,7 @@ class LayerRibbonBase(LayerBase):
         if ribbon_count % 4 != 0:
             y_pos += last_y_height
 
-        if achievements := evt_achievement.get(
-            self._replay_data.owner_id, None
-        ):
+        if achievements := evt_achievement.get(self._replay_data.owner_id, None):
             for a_idx, (a_id, a_count) in enumerate(achievements.items(), 1):
                 ui_name = self._achievements[a_id]
 
@@ -154,9 +153,7 @@ class LayerRibbonBase(LayerBase):
 
                 a_icon_res = "achievement_icons"
                 a_filename = f"icon_achievement_{ui_name}.png"
-                a_image = self._renderer.resman.load_image(
-                    a_filename, path=a_icon_res
-                )
+                a_image = self._renderer.resman.load_image(a_filename, path=a_icon_res)
 
                 if a_count > 1:
                     a_image_draw = ImageDraw.Draw(a_image)
