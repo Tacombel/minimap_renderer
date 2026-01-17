@@ -48,17 +48,11 @@ class LayerHealthBase(LayerBase):
         LayerBase (_type_): _description_
     """
 
-    def __init__(
-        self, renderer: Renderer, replay_data: Optional[ReplayData] = None
-    ):
+    def __init__(self, renderer: Renderer, replay_data: Optional[ReplayData] = None):
         self._renderer = renderer
-        self._replay_data = (
-            replay_data if replay_data else self._renderer.replay_data
-        )
+        self._replay_data = replay_data if replay_data else self._renderer.replay_data
         self._ships = renderer.resman.load_json("ships.json")
-        self._player = self._replay_data.player_info[
-            self._replay_data.owner_id
-        ]
+        self._player = self._replay_data.player_info[self._replay_data.owner_id]
         self._font = self._renderer.resman.load_font(
             filename="warhelios_bold.ttf", size=16
         )
@@ -126,14 +120,14 @@ class LayerHealthBase(LayerBase):
                 ((0, 0), (mask_hp_img_w, mask_hp_img.width)), fill="black"
             )
 
-            if regen := ship.consumables_state.get(9, None):
+            if regen := ship.consumables_state.get(8, None):
                 _, count, _, _ = regen
                 if count:
-                    subtype = ability["id_to_subtype"][9]
-                    index = ability["id_to_index"][9]
+                    subtype = ability["id_to_subtype"][8]
+                    index = ability["id_to_index"][8]
                     name = f"{index}.{subtype}"
                     wt = ability[name]["workTime"]
-                    rhs = ability[name]["regenerationHPSpeed"]
+                    rhs = ability[name].get("regenerationHPSpeed", 0)
                     maxHeal = floor(wt) * rhs * self._player.max_health
                     canHeal = (
                         ship.regeneration_health
@@ -141,14 +135,10 @@ class LayerHealthBase(LayerBase):
                         else maxHeal
                     )
 
-                    per_limit = (
-                        canHeal + ship.health
-                    ) / self._player.max_health
+                    per_limit = (canHeal + ship.health) / self._player.max_health
 
                     regen_bar_arr = np.array(fg_bar)
-                    regen_bar_arr[
-                        regen_bar_arr[:, :, 3] > alpha
-                    ] = self._color_gray
+                    regen_bar_arr[regen_bar_arr[:, :, 3] > alpha] = self._color_gray
                     regen_bar_img = Image.fromarray(regen_bar_arr)
                     mask_regen_img = Image.new(fg_bar.mode, fg_bar.size)
                     mask_regen_img_w = mask_regen_img.width * per_limit
@@ -162,9 +152,7 @@ class LayerHealthBase(LayerBase):
             bg_bar.paste(hp_bar_img, mask=mask_hp_img)
 
         hp_current = "{:,}".format(round(ship.health)).replace(",", " ")
-        hp_max = "{:,}".format(round(self._player.max_health)).replace(
-            ",", " "
-        )
+        hp_max = "{:,}".format(round(self._player.max_health)).replace(",", " ")
         hp_max_text = f"/{hp_max}"
 
         hp_c_w, hp_c_h = self._font.getbbox(hp_current)[2:]
