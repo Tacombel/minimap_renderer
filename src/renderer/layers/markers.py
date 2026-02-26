@@ -73,8 +73,11 @@ class LayerMarkersBase(LayerBase):
                     color = COLORS_NORMAL[vehicle.relation]
 
                 for aid in {11, 13}.intersection(ac):
-                    name = f"{id_to_index[aid]}.{id_to_subtype[aid]}"
-                    if "distShip" not in abilities[name]:
+                    str_aid = str(aid)
+                    if str_aid not in id_to_index or str_aid not in id_to_subtype:
+                        continue
+                    name = f"{id_to_index[str_aid]}.{id_to_subtype[str_aid]}"
+                    if name not in abilities or "distShip" not in abilities[name]:
                         continue
                     dist_ship_bw = abilities[name]["distShip"]
                     r = round(self._renderer.get_scaled_r(dist_ship_bw) / 2)

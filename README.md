@@ -4,7 +4,7 @@
 
 Minimap Renderer parses World of Warships replays to create a timelapse video that resembles the in-game minimap.
 
- ![enter image description here](images/minimap.gif)
+![enter image description here](images/minimap.gif)
 
 Try it on in [Google Colab](https://colab.research.google.com/drive/1OyomQe5pHaDDozpt0rs9JMg54No8QMjE?usp=sharing)
 
@@ -12,26 +12,29 @@ Try it on in [Google Colab](https://colab.research.google.com/drive/1OyomQe5pHaD
 
 1. Install Python 3.10
 2. Create a Python virtual environment and activate it.
-	- Linux
-		```
-		python3.10 -m venv venv && . venv/bin/activate
-		```
-	- Windows
-		```
-		py -3.10 -m venv venv && venv\Scripts\activate.bat
-		```
-	- You should now see `(venv)` at the start of the command prompt.
+   - Linux
+     ```
+     python3.10 -m venv venv && . venv/bin/activate
+     ```
+   - Windows
+     ```
+     py -3.10 -m venv venv && venv\Scripts\activate.bat
+     ```
+   - You should now see `(venv)` at the start of the command prompt.
 3. Install the renderer package. To install the renderer package use this command.
-	```
-	pip install --upgrade --force-reinstall git+https://github.com/WoWs-Builder-Team/minimap_renderer.git
-	```
+   ```
+   pip install --upgrade --force-reinstall git+https://github.com/In-dor/minimap_renderer.git
+   ```
 4. You're all set.
 
 ### Usage
+
 Replays can be rendered with `render` module. The full usage is:
+
 ```
 python -m render --replay <replay_path>
 ```
+
 This will create a `.mp4` file from your replay file.
 
 Since the renderer is installed to a virtual environment, you need to activate it once before you render. Once activated, you can render any replay file as long as it is a valid replay file.
