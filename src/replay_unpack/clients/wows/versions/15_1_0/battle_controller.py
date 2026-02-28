@@ -71,9 +71,7 @@ class BattleController(IBattleController):
         Entity.subscribe_method_call(
             "Avatar", "receiveVehicleDeath", self.receiveVehicleDeath
         )
-        Entity.subscribe_method_call(
-            "Vehicle", "setConsumables", self.onSetConsumable
-        )
+        Entity.subscribe_method_call("Vehicle", "setConsumables", self.onSetConsumable)
         Entity.subscribe_method_call(
             "Avatar", "onAchievementEarned", self.onAchievementEarned
         )
@@ -126,12 +124,8 @@ class BattleController(IBattleController):
 
         #######################################################################
 
-        Entity.subscribe_property_change(
-            "BattleLogic", "timeLeft", self._update
-        )
-        Entity.subscribe_property_change(
-            "BattleLogic", "duration", self._set_durations
-        )
+        Entity.subscribe_property_change("BattleLogic", "timeLeft", self._update)
+        Entity.subscribe_property_change("BattleLogic", "duration", self._set_durations)
         Entity.subscribe_property_change(
             "BattleLogic", "battleStage", self._set_battle_stage
         )
@@ -139,9 +133,7 @@ class BattleController(IBattleController):
             "BattleLogic", "battleResult", self._set_battle_result
         )
         Entity.subscribe_property_change("Vehicle", "health", self._set_health)
-        Entity.subscribe_property_change(
-            "Vehicle", "isAlive", self._set_is_alive
-        )
+        Entity.subscribe_property_change("Vehicle", "isAlive", self._set_is_alive)
         Entity.subscribe_method_call(
             "Avatar", "updateMinimapVisionInfo", self._update_position
         )
@@ -157,17 +149,13 @@ class BattleController(IBattleController):
             "Avatar", "receiveTorpedoes", self._receiveTorpedoes
         )
 
-        Entity.subscribe_property_change(
-            "Vehicle", "shipConfig", self._modernization
-        )
+        Entity.subscribe_property_change("Vehicle", "shipConfig", self._modernization)
 
         Entity.subscribe_property_change(
             "Vehicle", "crewModifiersCompactParams", self._crew_skills
         )
 
-        Entity.subscribe_method_call(
-            "Avatar", "receiveShotKills", self._set_hits
-        )
+        Entity.subscribe_method_call("Avatar", "receiveShotKills", self._set_hits)
 
         Entity.subscribe_property_change(
             "Vehicle", "visibilityFlags", self._set_visibility_flag
@@ -195,19 +183,13 @@ class BattleController(IBattleController):
             "Avatar", "receive_removeMinimapSquadron", self._remove_plane
         )
 
-        Entity.subscribe_method_call(
-            "Avatar", "receive_wardAdded", self._add_ward
-        )
+        Entity.subscribe_method_call("Avatar", "receive_wardAdded", self._add_ward)
 
-        Entity.subscribe_method_call(
-            "Avatar", "receive_wardRemoved", self._remove_ward
-        )
+        Entity.subscribe_method_call("Avatar", "receive_wardRemoved", self._remove_ward)
         Entity.subscribe_nested_property_change(
             "SmokeScreen", "points", self._set_smoke_points
         )
-        Entity.subscribe_property_change(
-            "BattleLogic", "state", self._set_state
-        )
+        Entity.subscribe_property_change("BattleLogic", "state", self._set_state)
         Entity.subscribe_property_change(
             "BattleLogic", "battleType", self._set_battle_type
         )
@@ -226,9 +208,7 @@ class BattleController(IBattleController):
         Entity.subscribe_property_change(
             "Vehicle", "regenerationHealth", self._set_regeneration_health
         )
-        Entity.subscribe_method_call(
-            "Avatar", "onChatMessage", self._on_chat_message
-        )
+        Entity.subscribe_method_call("Avatar", "onChatMessage", self._on_chat_message)
         Entity.subscribe_property_change(
             "Vehicle", "burningFlags", self._set_burning_flags
         )
@@ -239,9 +219,7 @@ class BattleController(IBattleController):
         Entity.subscribe_method_call(
             "Avatar", "receiveTorpedoDirection", self._receive_torpedo_dir
         )
-        Entity.subscribe_property_change(
-            "Vehicle", "maxHealth", self._set_max_health
-        )
+        Entity.subscribe_property_change("Vehicle", "maxHealth", self._set_max_health)
         Entity.subscribe_property_change(
             "InteractiveZone", "componentsState", self._set_caps
         )
@@ -316,9 +294,7 @@ class BattleController(IBattleController):
 
     def _set_max_health(self, entity: Entity, max_health):
         pid = self._vehicle_to_id[entity.id]
-        self._dict_info[pid] = self._dict_info[pid]._replace(
-            max_health=max_health
-        )
+        self._dict_info[pid] = self._dict_info[pid]._replace(max_health=max_health)
 
     # receiveTorpedoDirection(self, ownerId, torpedoId, serverPos, targetYaw,
     # targetDepth, speedCoef, curYawSpeed, curPitchSpeed, canReachDepth)
@@ -337,9 +313,7 @@ class BattleController(IBattleController):
         can_reach_depth,
     ):
         x, y = map(round, pos[::2])
-        self._acc_acoustic_torpedoes[
-            int(f"{vehicle_id}{shot_id}")
-        ] = AcousticTorpedo(
+        self._acc_acoustic_torpedoes[int(f"{vehicle_id}{shot_id}")] = AcousticTorpedo(
             vehicle_id,
             int(f"{vehicle_id}{shot_id}"),
             x,
@@ -349,18 +323,16 @@ class BattleController(IBattleController):
         )
 
     def _is_suppressed(self, entity: Entity, val):
-        self._dict_building[entity.id] = self._dict_building[
-            entity.id
-        ]._replace(is_suppressed=val)
+        self._dict_building[entity.id] = self._dict_building[entity.id]._replace(
+            is_suppressed=val
+        )
 
     def _is_alive(self, entity: Entity, val):
-        self._dict_building[entity.id] = self._dict_building[
-            entity.id
-        ]._replace(is_alive=val)
+        self._dict_building[entity.id] = self._dict_building[entity.id]._replace(
+            is_alive=val
+        )
 
-    def _on_chat_message(
-        self, entity: Entity, player_id, namespace, message, unk
-    ):
+    def _on_chat_message(self, entity: Entity, player_id, namespace, message, unk):
         if player_id in [0, -1]:
             return
 
@@ -413,9 +385,7 @@ class BattleController(IBattleController):
                 relation = 1
             self._dict_score[relation] = Score(relation, team_score["score"])
 
-    def _add_ward(
-        self, entity, squadronId, position, radius, ownerId, **kwargs
-    ):
+    def _add_ward(self, entity, squadronId, position, radius, ownerId, **kwargs):
         radius = radius if radius else 60
         self._dict_ward[squadronId] = Ward(
             plane_id=squadronId,
@@ -441,9 +411,9 @@ class BattleController(IBattleController):
 
         try:
             # TODO: drop assumption that all caps have same property?
-            mission = self.battle_logic.properties["client"]["state"][
-                "missions"
-            ]["hold"][0]
+            mission = self.battle_logic.properties["client"]["state"]["missions"][
+                "hold"
+            ][0]
             reward, period = mission["reward"], mission["period"]
         except (TypeError, IndexError, KeyError):
             return None
@@ -502,9 +472,7 @@ class BattleController(IBattleController):
         self._acc_message.clear()
         self._acc_acoustic_torpedoes.clear()
 
-    def _add_plane(
-        self, entity: Entity, plane_id: int, team_id, params_id, pos, unk
-    ):
+    def _add_plane(self, entity: Entity, plane_id: int, team_id, params_id, pos, unk):
         owner_id, index, purpose, departures = unpack_plane_id(plane_id)
 
         try:
@@ -540,7 +508,9 @@ class BattleController(IBattleController):
     def _on_consumable_used(self, entity: Entity, consumableType, workTimeLeft):
         consumables = self._acc_consumables.setdefault(entity.id, [])
         consumables.append(
-            Consumable(ship_id=entity.id, consumable_id=consumableType, duration=workTimeLeft)
+            Consumable(
+                ship_id=entity.id, consumable_id=consumableType, duration=workTimeLeft
+            )
         )
 
     def _set_visibility_flag(self, entity: Entity, flag: int):
@@ -551,9 +521,7 @@ class BattleController(IBattleController):
     def _set_hits(self, entity: Entity, data):
         for item in data:
             for kill in item["kills"]:
-                self._acc_hits.append(
-                    int(f"{item['ownerID']}{kill['shotID']}")
-                )
+                self._acc_hits.append(int(f"{item['ownerID']}{kill['shotID']}"))
 
     def _receiveTorpedoes(self, entity: Entity, shots):
         for shot in shots:
@@ -606,9 +574,9 @@ class BattleController(IBattleController):
             abilities = struct.unpack("<" + "L" * i, bio.read(4 * i))
 
             try:
-                self._dict_info[
+                self._dict_info[self._vehicle_to_id[entity.id]] = self._dict_info[
                     self._vehicle_to_id[entity.id]
-                ] = self._dict_info[self._vehicle_to_id[entity.id]]._replace(
+                ]._replace(
                     abilities=abilities,
                     hull=hull_unit,
                     modernization=modern,
@@ -673,6 +641,14 @@ class BattleController(IBattleController):
             x, y, yaw = map(round, (x, y, math.degrees(yaw)))
             is_visible = x != -2500 or y != -2500
 
+            if vehicle_id not in self._dict_building:
+                import logging
+
+                logging.error(
+                    f"Missing building vehicle_id: {vehicle_id} in _update_position"
+                )
+                continue
+
             if is_visible:
                 self._dict_building[vehicle_id] = self._dict_building[
                     vehicle_id
@@ -688,6 +664,14 @@ class BattleController(IBattleController):
             x, y, yaw = map(round, (x, y, math.degrees(yaw)))
 
             is_visible = x != -2500 or y != -2500
+
+            if vehicle_id not in self._dict_vehicle:
+                import logging
+
+                logging.error(
+                    f"Missing ship vehicle_id: {vehicle_id} in _update_position"
+                )
+                continue
 
             if is_visible:
                 self._dict_vehicle[vehicle_id] = self._dict_vehicle[
@@ -741,7 +725,7 @@ class BattleController(IBattleController):
                     clan_id=player["clanID"],
                     clan_tag=player["clanTag"],
                     max_health=player["maxHealth"],
-                    name=player["name"].encode('ISO8859-1').decode('UTF-8'),
+                    name=player["name"].encode("ISO8859-1").decode("UTF-8"),
                     realm=player["realm"],
                     ship_id=player["shipId"],
                     team_id=player["teamId"],
@@ -781,7 +765,7 @@ class BattleController(IBattleController):
                     is_alive=player["isAlive"],
                     is_hidden=player["isHidden"],
                     is_suppressed=player["isSuppressed"],
-                    name=player["name"].encode('ISO8859-1').decode('UTF-8'),
+                    name=player["name"].encode("ISO8859-1").decode("UTF-8"),
                     params_id=player["paramsId"],
                     team_id=player["teamId"],
                     unique_id=player["uniqueId"],
@@ -810,9 +794,9 @@ class BattleController(IBattleController):
             cid, state = c
             consumables[cid] = state
 
-        self._dict_vehicle[vehicle.id] = self._dict_vehicle[
-            vehicle.id
-        ]._replace(consumables_state=consumables)
+        self._dict_vehicle[vehicle.id] = self._dict_vehicle[vehicle.id]._replace(
+            consumables_state=consumables
+        )
 
     @property
     def entities(self):
@@ -820,9 +804,7 @@ class BattleController(IBattleController):
 
     @property
     def battle_logic(self):
-        return next(
-            e for e in self._entities.values() if e.get_name() == "BattleLogic"
-        )
+        return next(e for e in self._entities.values() if e.get_name() == "BattleLogic")
 
     def create_entity(self, entity: Entity):
         self._entities[entity.id] = entity
@@ -837,9 +819,7 @@ class BattleController(IBattleController):
                     entity_id=entity.id, radius=radius, points=points
                 )
             else:
-                self._dict_smoke[entity.id]._replace(
-                    radius=radius, points=points
-                )
+                self._dict_smoke[entity.id]._replace(radius=radius, points=points)
 
     def destroy_entity(self, entity: Entity):
         self._entities.pop(entity.id)
@@ -882,9 +862,7 @@ class BattleController(IBattleController):
         # adding killed planes data
         players = copy.deepcopy(self._players.get_info())
         for player in players.values():
-            player["planesCount"] = self._dead_planes.get(
-                player.get("shipId", 0), 0
-            )
+            player["planesCount"] = self._dead_planes.get(player.get("shipId", 0), 0)
 
         rd = ReplayData(
             game_arena_id=self._arena_id,
@@ -935,14 +913,10 @@ class BattleController(IBattleController):
         return deaths
 
     def _getCapturePointsInfo(self):
-        return self.battle_logic.properties["client"]["state"].get(
-            "controlPoints", []
-        )
+        return self.battle_logic.properties["client"]["state"].get("controlPoints", [])
 
     def _getTasksInfo(self):
-        tasks = self.battle_logic.properties["client"]["state"].get(
-            "tasks", []
-        )
+        tasks = self.battle_logic.properties["client"]["state"].get("tasks", [])
         for task in tasks:
             yield {
                 "category": Category.names[task["category"]],
@@ -957,15 +931,15 @@ class BattleController(IBattleController):
 
     def _set_battle_result(self, entity, battle_result):
         self._battle_result_nt = self._battle_result_nt._replace(
-            team_id=battle_result["winnerTeamId"], victory_type=battle_result["finishReason"]
+            team_id=battle_result["winnerTeamId"],
+            victory_type=battle_result["finishReason"],
         )
         self._battle_result = dict(
-            winner_team_id=battle_result["winnerTeamId"], victory_type=battle_result["finishReason"]
+            winner_team_id=battle_result["winnerTeamId"],
+            victory_type=battle_result["finishReason"],
         )
 
-    def onNewPlayerSpawnedInBattle(
-        self, entity, playersData, botsData, observersData
-    ):
+    def onNewPlayerSpawnedInBattle(self, entity, playersData, botsData, observersData):
         self._players.create_or_update_players(
             restricted_loads(playersData, encoding="latin1"), PlayerType.PLAYER
         )
@@ -1048,14 +1022,10 @@ class BattleController(IBattleController):
     #     self._ribbons[vehicle.id][ribbon_id] += 1
 
     def onAchievementEarned(self, avatar, avatar_id, achievement_id):
-        self._achievements.setdefault(avatar_id, {}).setdefault(
-            achievement_id, 0
-        )
+        self._achievements.setdefault(avatar_id, {}).setdefault(achievement_id, 0)
         self._achievements[avatar_id][achievement_id] += 1
 
-    def receiveVehicleDeath(
-        self, avatar, killedVehicleId, fraggerVehicleId, typeDeath
-    ):
+    def receiveVehicleDeath(self, avatar, killedVehicleId, fraggerVehicleId, typeDeath):
         self._acc_frags.append(
             Frag(
                 killed_id=killedVehicleId,
@@ -1070,13 +1040,11 @@ class BattleController(IBattleController):
             self._shots_damage_map.setdefault(vehicle.id, {}).setdefault(
                 damage_info["vehicleID"], 0
             )
-            self._shots_damage_map[vehicle.id][
-                damage_info["vehicleID"]
-            ] += damage_info["damage"]
+            self._shots_damage_map[vehicle.id][damage_info["vehicleID"]] += damage_info[
+                "damage"
+            ]
 
-    def receive_planeDeath(
-        self, avatar, squadronID, planeIDs, reason, attackerId
-    ):
+    def receive_planeDeath(self, avatar, squadronID, planeIDs, reason, attackerId):
         self._dead_planes.setdefault(attackerId, 0)
         self._dead_planes[attackerId] += len(planeIDs)
 

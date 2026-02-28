@@ -653,6 +653,11 @@ class BattleController(IBattleController):
             x, y, yaw = map(round, (x, y, math.degrees(yaw)))
             is_visible = x != -2500 or y != -2500
 
+            if vehicle_id not in self._dict_building:
+                import logging
+                logging.error(f"Missing building vehicle_id: {vehicle_id} in _update_position")
+                continue
+
             if is_visible:
                 self._dict_building[vehicle_id] = self._dict_building[
                     vehicle_id
@@ -668,6 +673,11 @@ class BattleController(IBattleController):
             x, y, yaw = map(round, (x, y, math.degrees(yaw)))
 
             is_visible = x != -2500 or y != -2500
+
+            if vehicle_id not in self._dict_vehicle:
+                import logging
+                logging.error(f"Missing ship vehicle_id: {vehicle_id} in _update_position")
+                continue
 
             if is_visible:
                 self._dict_vehicle[vehicle_id] = self._dict_vehicle[
