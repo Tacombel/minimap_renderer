@@ -508,11 +508,20 @@ class BattleController(IBattleController):
     def _on_consumable_used(self, entity: Entity, *args, **kwargs):
         consumableType = kwargs.get("consumableType")
         if consumableType is None and "consumableUsageParams" in kwargs:
-            consumableType = (
+            slot_idx = (
                 kwargs["consumableUsageParams"][0]
                 if isinstance(kwargs["consumableUsageParams"], bytes)
                 else 0
             )
+            try:
+                vehicle = self._dict_vehicle[entity.id]
+                cids = list(vehicle.consumables_state.keys())
+                if slot_idx < len(cids):
+                    consumableType = cids[slot_idx]
+                else:
+                    consumableType = 0
+            except (KeyError, AttributeError):
+                consumableType = 0
         elif consumableType is None:
             consumableType = 0
 
