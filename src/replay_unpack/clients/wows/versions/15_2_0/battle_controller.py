@@ -505,7 +505,19 @@ class BattleController(IBattleController):
     def _remove_plane(self, entity: Entity, plane_id: int):
         self._dict_plane.pop(plane_id)
 
-    def _on_consumable_used(self, entity: Entity, consumableType, workTimeLeft):
+    def _on_consumable_used(self, entity: Entity, *args, **kwargs):
+        consumableType = kwargs.get("consumableType")
+        if consumableType is None and "consumableUsageParams" in kwargs:
+            consumableType = (
+                kwargs["consumableUsageParams"][0]
+                if isinstance(kwargs["consumableUsageParams"], bytes)
+                else 0
+            )
+        elif consumableType is None:
+            consumableType = 0
+
+        workTimeLeft = kwargs.get("workTimeLeft", 0)
+
         consumables = self._acc_consumables.setdefault(entity.id, [])
         consumables.append(
             Consumable(
