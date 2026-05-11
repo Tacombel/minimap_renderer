@@ -8,6 +8,10 @@ Minimap Renderer parses World of Warships replays to create a timelapse video th
 
 Try it on in [Google Colab](https://colab.research.google.com/drive/1OyomQe5pHaDDozpt0rs9JMg54No8QMjE?usp=sharing)
 
+### Fork Information
+
+This is a fork of the original [WoWs-Builder-Team/minimap_renderer](https://github.com/WoWs-Builder-Team/minimap_renderer), maintained through [In-dor/minimap_renderer](https://github.com/In-dor/minimap_renderer). This fork maintains full compatibility with the **GNU Affero General Public License v3.0 (AGPLv3)** and is provided as a maintained version for production use.
+
 ### Installation
 
 1. Install Python 3.10
@@ -22,6 +26,11 @@ Try it on in [Google Colab](https://colab.research.google.com/drive/1OyomQe5pHaD
      ```
    - You should now see `(venv)` at the start of the command prompt.
 3. Install the renderer package. To install the renderer package use this command.
+   ```
+   pip install --upgrade --force-reinstall git+https://github.com/Tacombel/minimap_renderer.git
+   ```
+   
+   Alternatively, you can install from the upstream fork:
    ```
    pip install --upgrade --force-reinstall git+https://github.com/In-dor/minimap_renderer.git
    ```
@@ -41,7 +50,12 @@ Since the renderer is installed to a virtual environment, you need to activate i
 
 ### License
 
-This project is licensed under the GNU AGPLv3 License.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**. As a derivative work, this fork maintains full compliance with the AGPLv3 license terms, including the requirement to publish any modifications under the same license.
+
+**Attribution Chain:**
+- **Original:** [WoWs-Builder-Team/minimap_renderer](https://github.com/WoWs-Builder-Team/minimap_renderer) - AGPLv3
+- **Upstream Fork:** [In-dor/minimap_renderer](https://github.com/In-dor/minimap_renderer) - AGPLv3
+- **This Fork:** [Tacombel/minimap_renderer](https://github.com/Tacombel/minimap_renderer) - AGPLv3
 
 ### Credits and Links
 
