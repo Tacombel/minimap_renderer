@@ -121,7 +121,20 @@ class LayerHealthBase(LayerBase):
             )
 
             if regen := ship.consumables_state.get(8, None):
-                _, count, _, _ = regen
+                # Desde WoWS 15.5.0 el estado del consumible se serializa como
+                # dict (antes era una tupla de 4). El numero de cargas vive en
+                # lifecycleDump.contextDump.numConsumables. Se mantiene compat
+                # con el formato antiguo de 4 elementos.
+                if isinstance(regen, dict):
+                    count = (
+                        regen.get("lifecycleDump", {})
+                        .get("contextDump", {})
+                        .get("numConsumables", 0)
+                    )
+                elif len(regen) == 4:
+                    _, count, _, _ = regen
+                else:
+                    count = 0
                 if count:
                     subtype = ability["id_to_subtype"].get(
                         str(8), ability["id_to_subtype"].get(8)
