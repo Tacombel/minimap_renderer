@@ -293,15 +293,27 @@ class LayerShipBase(LayerBase):
                 x = int(image.width / 2 - c_image.width / 2)
                 image.alpha_composite(c_image, (x, y))
             else:
-                c_icons_holder = Image.new("RGBA", (20 * len(ac), 20))
+                abilities = self._abilities.get(params_id, {})
+                clan_abilities = self._abilities.get("clan", {})
+                ability_indexes = []
+
+                for aid in ac:
+                    index = abilities.get("id_to_index", {}).get(aid)
+                    if index is None:
+                        index = clan_abilities.get(aid)
+                    if index is not None:
+                        ability_indexes.append(index)
+
+                # A consumable without a known icon must not abort the replay render.
+                if not ability_indexes:
+                    return
+
+                c_icons_holder = Image.new(
+                    "RGBA", (20 * len(ability_indexes), 20)
+                )
                 x_pos = 0
 
-                for aid, _ in ac.items():
-                    abilities = self._abilities[params_id]
-                    try:
-                        index = abilities["id_to_index"][aid]
-                    except KeyError:
-                        index = self._abilities["clan"][aid]
+                for index in ability_indexes:
                     filename = f"consumable_{index}.png"
                     c_image = self._renderer.resman.load_image(
                         filename,
